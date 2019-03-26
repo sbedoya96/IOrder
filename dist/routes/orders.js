@@ -6,66 +6,83 @@ module.exports = function (app) {
   var Adress = app.db.models.adressxClient;
   var Client = app.db.models.Clients;
   app.route('/orders').post(function (req, res) {
-    var idClient = GetClientId(req.body.ClientName, req.body.ClientLastName, req.body.Email);
-    console.log(idClient);
+    var ClientName = req.body.ClientName;
+    var ClientLastName = req.body.ClientLastName;
+    var Email = req.body.Email;
+    var Direccion = req.body.Adress;
+    var DeliveryDate = req.body.DeliveryDate;
+    var HoursRange = req.body.HoursRange;
+    var idClient = GetClientId(ClientName, ClientLastName, Email);
 
     if (parseInt(idClient) > 0) {
-      var idAdress = GetAdressId(idClient, req.body.Adress);
+      var idAdress = GetAdressId(idClient, Direccion);
 
       if (parseInt(idAdress) > 0) {
         var drivers = GetDriverId();
 
         if (parseInt(drivers) > 0) {
           Orders.create({
-            DeliveryDate: req.body.DeliveryDate,
-            HoursRange: req.body.HoursRange,
+            DeliveryDate: DeliveryDate,
+            HoursRange: HoursRange,
             idClient: idClient,
             idAdress: idAdress,
             idDrivers: drivers
           });
         } else {
-          res.status(500).json({
-            msg: 'all drivers offline, sry'
+          console.log({
+            msg: error.message
           });
         }
       }
     } else {
       res.status(500).json({
-        msg: error.message
+        msg: "Email Exits"
       });
       return;
     }
 
-    function GetClientId(name, lastname, email) {
+    function ValidateEmail(email) {
       Client.findOne({
         where: {
           Email: email
         }
-      }).then(function (user) {
-        if (!user) {
-          Client.create({
-            ClientName: name,
-            ClientLastName: lastname,
-            Email: email
-          }).then(function (result) {
-            var Result = result.dataValues.id;
-            return Result;
-          }).catch(function (error) {
-            return 0;
-          });
-        }
+      }).then(function (result) {
+        return result;
       });
     }
 
-    function GetClientId(idclient, adress) {
+    function GetClientId(name, lastname, email) {
+      if (ValidateEmail(email) == null) {
+        Client.create({
+          ClientName: name,
+          ClientLastName: lastname,
+          Email: email
+        }).then(function (result) {
+          var Result = result.dataValues.id;
+          return Result;
+        }).catch(function (error) {
+          console.log({
+            msg: error.message
+          });
+          return;
+        });
+      } else {
+        return 0;
+      }
+    }
+
+    function GetAdressId(id, address) {
       Adress.create({
         idClient: idclient,
-        Adress: adress
+        Adress: address
       }).then(function (result) {
         var Result = result.dataValues.idAdress;
         return Result;
       }).catch(function (error) {
-        return 0;
+        console.log({
+          msg: error.message
+        });
+        return;
       });
     }
 
