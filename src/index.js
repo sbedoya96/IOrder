@@ -1,6 +1,7 @@
 import express from 'express';
 import consign from 'consign';
 
+require('express-debug');
 const app = express();
 
 // Routes

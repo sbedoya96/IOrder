@@ -4,75 +4,85 @@ module.exports = app =>{
     const Drivers = app.db.models.Drivers;
     const Adress = app.db.models.adressxClient;
     const Client = app.db.models.Clients;
+    
 
     app.route('/orders')
     .post((req, res) => {
-       var idClient = GetClientId(req.body.ClientName, req.body.ClientLastName, req.body.Email);
-        console.log(idClient);
+
+        const ClientName = req.body.ClientName;
+        const ClientLastName = req.body.ClientLastName;
+        const Email = req.body.Email;
+        const Direccion = req.body.Adress;
+        const DeliveryDate = req.body.DeliveryDate;
+        const HoursRange = req.body.HoursRange;
+   
+
+
+       var idClient = GetClientId(ClientName, ClientLastName, Email);
        if(parseInt(idClient) > 0){
 
-        var idAdress = GetAdressId(idClient, req.body.Adress);
+        var idAdress = GetAdressId(idClient, Direccion);
+
         if(parseInt(idAdress) > 0){
 
             var drivers = GetDriverId();
             if(parseInt(drivers) > 0){
 
                 Orders.create({
-                    DeliveryDate: req.body.DeliveryDate,
-                    HoursRange: req.body.HoursRange,
+                    DeliveryDate: DeliveryDate,
+                    HoursRange: HoursRange,
                     idClient: idClient,
                     idAdress: idAdress,
                     idDrivers: drivers
-        
-        
                 });
-
             }else{
-                res.status(500).json({msg:'all drivers offline, sry' });
-
-
+                console.log({msg: error.message});
             }
         }
-
        }else{
-        res.status(500).json({msg: error.message});
+        res.status(500).json({msg: "Email Exits"});
        return;
     }
 
-    function GetClientId (name, lastname, email){
-		Client.findOne({
+    function ValidateEmail(email){
+        Client.findOne({
 			where: {
 				Email: email
 			} 
-		}).then(user => {
-			if(!user){
-				Client.create({
-					ClientName: name,
-					ClientLastName: lastname,
-					Email: email
-				}).then(result => {
-                    let Result = result.dataValues.id;
-                    return Result;
-				}).catch(error =>{
-                    return 0;
-                }); 
-            }
-            
-		});
+		}).then(result =>{
+            return result;
+        })
+    }
+    function GetClientId (name, lastname, email){
+        if(ValidateEmail(email) == null){
+            Client.create({
+                ClientName: name,
+                ClientLastName: lastname,
+                Email: email
+            }).then(result => {
+                let Result = result.dataValues.id;
+                return Result;
+            }).catch(error =>{
+                console.log({msg: error.message});
+                return;
+            }); 
+        }else{
+            return 0;
+        }
     }
 
-    function GetClientId(idclient , adress){
-
+    function GetAdressId(id , address){
         Adress.create({
             idClient: idclient,
-            Adress: adress
+            Adress: address
 
         }).then(result => {
-
-          let  Result = result.dataValues.idAdress
+          let  Result = result.dataValues.idAdress;
           return Result;
+
         }).catch(error =>{
-            return 0;
+           console.log({msg: error.message});
+            return;
         });
     }
 

@@ -35,8 +35,6 @@ module.exports = app =>{
                 });
                 res.status(201).json({msg:'User '+ req.body.userName + ' has been created' });
             }
-            
-            
         })
         .catch(error => {
           res.status(412).json({msg: error.message});
@@ -54,7 +52,6 @@ module.exports = app =>{
             if (!user) {
                 return res.json({"message":'User Not Found.'});
             }
-        
             var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
             if (!passwordIsValid) {
                 return res.json({ auth: false, accessToken: null, reason: "Invalid Password!" });
@@ -68,9 +65,7 @@ module.exports = app =>{
                 { where: {userName: req.body.userName} })
               .then(driver =>{
                 res.json({ user: req.body.userName , auth: true, accessToken: token, state: req.params.state });
-              })
-              
-
+              });
             }).catch(err => {
                 res.json('Error -> ' + err);
             });
@@ -92,8 +87,7 @@ module.exports = app =>{
                   .then(driver =>{
                     return res.json({"message": req.body.userName +'  has been disconnected'});
                   })
-                  
-    
+
                 }).catch(err => {
                     res.json('Error -> ' + err);
                 });
